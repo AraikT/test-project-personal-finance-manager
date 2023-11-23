@@ -4,3 +4,4 @@ class Expense:
       self.type = type
       self.amount = amount
       self.date = date
+      com = 5
