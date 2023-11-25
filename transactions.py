@@ -3,3 +3,5 @@ class Transaction:
         self.amount = amount
         self.date = date
         self.description = description
+    def get_attributes(self):
+        return [self.amount, self.date, self.description]
