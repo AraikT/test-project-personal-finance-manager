@@ -21,3 +21,6 @@ class User:
 
     def get_savings(self):
         return self.get_total_income() - self.get_total_expenses()
+    
+    def get_user_id(self):
+        return self.user_id
