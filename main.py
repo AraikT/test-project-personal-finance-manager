@@ -1,114 +1,137 @@
-import re
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
+class Transaction:
+    def __init__(self, amount, date, description):
+        self.amount = amount
+        self.date = date
+        self.description = description
 
-def check_valid(f):
-    def wrapper(self, *args, **kwargs):
-        if self.is_valid_user():
-            print(f'User {self.generate_username()} is valid')
-            return f(self, *args, **kwargs)
-        else:
-            print(f'User is not valid. Access denied.')
 
-    return wrapper
+class Income(Transaction):
+    def __init__(self, amount, date, description, source):
+        super().__init__(amount, date, description)
+        self.source = source
+
+
+class Expense(Transaction):
+    def __init__(self, amount, date, description, category):
+        super().__init__(amount, date, description)
+        self.category = category
+
+
+class OneTimePayment(Income):
+    def __init__(self, amount, date, description, source):
+        super().__init__(amount, date, description, source)
+
+
+class Salary(Income):
+    def __init__(self, amount, date, description, source):
+        super().__init__(amount, date, description, source)
+
+
+class OneTimePurchase(Expense):
+    def __init__(self, amount, date, description, category):
+        super().__init__(amount, date, description, category)
+
+
+class Subscription(Expense):
+    def __init__(self, amount, date, description, category):
+        super().__init__(amount, date, description, category)
+
 
 class User:
-    def __init__(self, name, surname, age, phone_number, email, password):
-        self.name = name
-        self.surname = surname
-        self.age = age
-        self.phone_number = phone_number
-        self.email = email
-        self.password = password
-        self.income = {'total_income': 0}
-        self.expenses = {'total_expenses': 0}
+    def __init__(self,user_id, username):
+        self.user_id = user_id
+        self.name = username
+        self.transactions = []  # Store user transactions
 
-    def is_valid_user(self):
-        # Add additional validation logic as needed
-        return self.is_valid_email(self.email) and self.is_valid_password(self.password)
+    def add_transaction(self, transaction):
+        self.transactions.append(transaction)
 
-    def is_valid_email(self, email):
-        pattern = re.compile(r"[^@]+@[^@]+\.[^@]+")
-        return bool(re.match(pattern, email))
+    def get_transactions(self):
+        return self.transactions
 
-    def is_valid_password(self, password):
-        # Basic password validation (add  validation as needed)
-        return password is not None
+    def get_total_income(self):
+        return sum(transaction.amount for transaction in self.transactions if isinstance(transaction, Income))
 
-    def generate_username(self):
-        return f"{self.name.lower()}_{self.surname.lower()}_{self.age}"
+    def get_total_expenses(self):
+        return sum(transaction.amount for transaction in self.transactions if isinstance(transaction, Expense))
 
-    @check_valid
-    def add_income(self, amount):
-        self.income['total_income'] += amount
+    def get_savings(self):
+        return self.get_total_income() - self.get_total_expenses()
+class PersonalFinanceManager:
+    def __init__(self):
+        self.users = []
 
-    @check_valid
-    def add_expense(self, category, amount):
-        if category not in self.expenses:
-            self.expenses[category] = 0
-        self.expenses[category] += amount
-        self.expenses['total_expenses'] += amount
+    def users_list(self):
+        return self.users
+    def create_user(self, user_id, username):
+        new_user = User(user_id, username)
+        self.users.append(new_user)
+        return new_user
 
-   
-    def calculate_total_income(self):
-        return self.income['total_income']
+    def get_user(self, username):
+        for user in self.users:
+            if user.username == username:
+                return user
+        return None
 
-    def calculate_total_expenses(self):
-        return self.expenses['total_expenses']
+    def add_transaction_to_user(self, username, transaction):
+        user = self.get_user(username)
+        if user:
+            user.add_transaction(transaction)
+        else:
+            print(f"User '{username}' not found.")
+# Creating a PersonalFinanceManager
+pf_manager = PersonalFinanceManager()
 
-    def calculate_savings(self):
-        return self.income['total_income'] - self.expenses['total_expenses']
+# Creating a user
+user1 = pf_manager.create_user(123, "HOvsep")
+user2 = pf_manager.create_user(234, "Sona")
+# Creating transactions
+income1 = Income(1000, "2023-01-01", "Salary", "Job")
+expense1 = Expense(500, "2023-01-05", "Groceries", "Food")
+one_time_purchase1 = OneTimePurchase(200, "2023-01-10", "New headphones", "Electronics")
+income2 = Income(10000, "2023-01-01", "Salary", "Job")
+expense2 = Expense(700, "2023-01-05", "Groceries", "Food")
+one_time_purchase2 = OneTimePurchase(900, "2023-01-10", "New headphones", "Electronics")
 
-    def categorize_expenses(self):
-        return {category: amount for category, amount in self.expenses.items() if category != 'total_expenses'}
 
-# Example Usage:
-user_name = input("Enter your name: ")
-user_surname = input("Enter your surname: ")
-user_age = int(input("Enter your age: "))
-user_phone_number = input("Enter your phone number: ")
-user_email = input("Enter your email address: ")
-user_password = input("Enter your password: ")
+# Adding transactions to the user1
+user1.add_transaction(income1)
+user1.add_transaction(expense1)
+user1.add_transaction(one_time_purchase1)
 
-try:
-    user = User(user_name, user_surname, user_age, user_phone_number, user_email, user_password)
-except ValueError as e:
-    print(f"Error: {e}")
-    exit()
+# Adding transactions to the user2
+user2.add_transaction(income2)
+user2.add_transaction(expense2)
+user2.add_transaction(one_time_purchase2)
+# Getting all transactions for the user1
+all_transactions = user1.get_transactions()
+print("All Transactions for user1:")
+for transaction in all_transactions:
+    print(transaction.amount, transaction.date, transaction.description)
 
-# Now you can use `user` object to perform financial tasks
-# ...
+# Getting total income, expenses, and savings for the user
+total_income = user1.get_total_income()
+total_expenses = user1.get_total_expenses()
+savings = user1.get_savings()
 
-# Adding income
-user.add_income(500)
+print("\nTotal Income:", total_income)
+print("Total Expenses:", total_expenses)
+print("Savings:", savings)
 
-# Adding expenses
-user.add_expense('food', 50)
-user.add_expense('clothes', 30)
 
-# Displaying results
-print(f'Total Income: {user.calculate_total_income()}')
-print(f'Total Expenses: {user.calculate_total_expenses()}')
-print(f'Savings: {user.calculate_savings()}')
-print('Categorized Expenses:', user.categorize_expenses())
+# Getting all transactions for the user2
+all_transactions = user2.get_transactions()
+print("All Transactions for user1:")
+for transaction in all_transactions:
+    print(transaction.amount, transaction.date, transaction.description)
 
-# Visualizing Expenses
-expenses_data = user.categorize_expenses()
-categories = list(expenses_data.keys())
-amounts = list(expenses_data.values())
+# Getting total income, expenses, and savings for the user
+total_income = user2.get_total_income()
+total_expenses = user2.get_total_expenses()
+savings = user2.get_savings()
 
-# Check if the lists are not empty before plotting
-if categories and amounts:
-    plt.figure(figsize=(10, 6))
-    sns.barplot(x=categories, y=amounts)
-    plt.title('Daily Expenses')
-    plt.xlabel('Expense Categories')
-    plt.ylabel('Amount Spent')
-    plt.show()
-else:
-    print("No data to visualize.")
+print("\nTotal Income:", total_income)
+print("Total Expenses:", total_expenses)
+print("Savings:", savings)
 
-# Print generated user name for finance manager
-print(f'Generated User Name for Finance Manager: {user.generate_username()}')
